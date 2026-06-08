@@ -19,7 +19,7 @@ MUI) ship.
 ## Install
 
 ```bash
-/plugin marketplace add <your-github-username>/extract-design-md-marketplace
+/plugin marketplace add ridhimagupta/extract-design-md-marketplace
 /plugin install extract-design-md@design-md-marketplace
 ```
 
