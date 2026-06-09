@@ -90,6 +90,45 @@ semantic tier under `semantic-dark`. Typical mappings:
 If the real site is light-only, say so in **Known Gaps** — dark mode is an
 additive layer, not an extraction.
 
+## Motion capture (scripts/motion.mjs)
+
+Capture the **mechanism** of microinteractions, not a recording. A screen
+recording shows the look but not the trigger/duration/easing, and pixel→CSS
+reconstruction is lossy and janky. `motion.json` gives:
+
+- `libraries`: which animation engine the site uses. **If a library is detected,
+  recommend reproducing with it** (Framer Motion, GSAP/ScrollTrigger, Lottie,
+  Rive, AOS, Lenis smooth-scroll) rather than hand-rolling.
+- `transitions`: the common `property | duration | timing-function` combos —
+  turn the top few into transition tokens (e.g. `--ease-fast: 150ms ease`,
+  `--ease-emphasized: 400ms cubic-bezier(...)`).
+- `keyframes`: `@keyframes` rules to copy verbatim.
+- `hover`: per-element computed-style deltas (`from`→`to` for bg/transform/
+  shadow/etc.) plus the driving transition — these become your `:hover` rules.
+- `scroll`: elements whose opacity/transform changed after scrolling = reveal or
+  parallax. Reproduce reveals with an **IntersectionObserver** that adds an
+  `.in-view` class toggling from the captured `from` state to `to`.
+
+### Reliably capturable
+Hover/focus color/transform/shadow changes; CSS transition durations + easings;
+`@keyframes`; fade/slide-in-on-scroll; sticky/transform-on-scroll; marquees.
+
+### Approximate or out of reach
+Spring physics (Framer Motion springs), staggered orchestration, exact bespoke
+easing curves, canvas/WebGL/shader animation, and scroll-scrubbed video. Note
+these in the DESIGN.md `## Motion` section rather than faking them.
+
+### Sample motion.css shape
+```css
+:root { --ease-fast: 150ms cubic-bezier(.4,0,.2,1); }
+.btn { transition: transform var(--ease-fast), background-color var(--ease-fast); }
+.btn:hover { transform: translateY(-1px); }
+@keyframes reveal-up { from { opacity:0; transform:translateY(16px) } to { opacity:1; transform:none } }
+.reveal { opacity:0; }
+.reveal.in-view { animation: reveal-up 600ms cubic-bezier(.16,1,.3,1) forwards; }
+```
+With a tiny IntersectionObserver adding `.in-view` on enter.
+
 ## Verification loop (if building a sample)
 
 1. Implement tokens as CSS variables (primitives + semantic), wire components to

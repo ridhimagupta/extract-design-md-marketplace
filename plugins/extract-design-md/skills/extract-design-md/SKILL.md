@@ -31,8 +31,9 @@ wrong conclusions (e.g. picking a framework default or a one-off icon color as
 - [ ] 3. LOOK at the screenshots and read styles.json
 - [ ] 4. Decide the semantic hierarchy from real usage (verify visually)
 - [ ] 5. Build two-tier tokens (primitives + semantic roles)
-- [ ] 6. Write DESIGN.md from TEMPLATE.md
-- [ ] 7. (Optional) verify: build a sample, render, compare, iterate
+- [ ] 6. (Optional) Run the motion probe -> motion.json (microinteractions)
+- [ ] 7. Write DESIGN.md from TEMPLATE.md (+ Motion section if captured)
+- [ ] 8. (Optional) verify: build a sample, render, compare, iterate
 ```
 
 ### Step 1 — Target
@@ -95,7 +96,28 @@ Never emit a flat color list. Use:
 
 This makes theming (incl. dark mode) a single override of the semantic tier.
 
-### Step 6 — Write DESIGN.md
+### Step 6 — Capture motion (optional)
+
+To reproduce microinteractions (hover, scroll reveals, transitions), capture the
+**mechanism**, not a video — screen-recording can't be reverse-engineered into
+clean CSS. Run the motion probe:
+
+```bash
+node --experimental-websocket scripts/motion.mjs "https://example.com" ./design-probe
+```
+
+It writes `motion.json` with: `libraries` (GSAP/Framer Motion/Lottie/Rive/AOS/
+Lenis detected), `transitions` (durations + easings), `keyframes` (`@keyframes`
+rules), `hover` (computed-style deltas on real elements with the driving
+transition), and `scroll` (opacity/transform from→to for reveal/parallax).
+
+Use it to write a `## Motion` section in DESIGN.md and, if building a sample, a
+`motion.css` (transition tokens + `@keyframes` + an IntersectionObserver reveal
+helper). If a library is detected, recommend reproducing with that library
+(e.g. Framer Motion) rather than hand-rolled CSS. See [reference.md](reference.md)
+for what is reliably capturable vs. approximate (springs, WebGL, scrubbing).
+
+### Step 7 — Write DESIGN.md
 
 Copy [TEMPLATE.md](TEMPLATE.md) and fill every section with extracted values.
 Requirements:
@@ -109,7 +131,7 @@ Requirements:
   under **Known Gaps**. If you add a dark theme the site lacks, label it an
   additive, reuse-oriented layer.
 
-### Step 7 — Verify (optional but recommended)
+### Step 8 — Verify (optional but recommended)
 
 If asked to also build a showcase/sample: generate a small page using only the
 tokens, render it with the same probe approach (point Chrome at the local
@@ -125,6 +147,7 @@ be dropped into any repo so an agent can "use DESIGN.md for UI work."
 ## Resources
 
 - [scripts/probe.mjs](scripts/probe.mjs) — run to extract styles + screenshots.
+- [scripts/motion.mjs](scripts/motion.mjs) — run to capture microinteractions.
 - [TEMPLATE.md](TEMPLATE.md) — the DESIGN.md structure to fill in.
 - [reference.md](reference.md) — token mapping heuristics, framework pitfalls,
-  dark-theme mapping, verification tips.
+  dark-theme mapping, motion capture, verification tips.

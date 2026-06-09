@@ -155,6 +155,16 @@ its resolved value and where it is used.>
 ## Components
 <each component: surface, text, radius, padding, states, and where it appears.>
 
+## Motion
+<OPTIONAL — fill from motion.json. Document: animation libraries in use; the
+transition tokens (common durations + easings, e.g. 150ms ease, 400ms
+cubic-bezier(...)); hover/focus specs per component (what changes + the
+transition); scroll-reveal patterns (fade/slide-in from opacity/transform
+from→to, trigger = on enter viewport); and any signature keyframes. Recommend an
+implementation: CSS transitions + IntersectionObserver for reveals, or the
+detected library (Framer Motion / GSAP) for complex orchestration. Note what is
+approximate (springs, WebGL, scroll-scrubbing).>
+
 ## Responsive Behavior
 <breakpoints table + key changes; touch targets.>
 

@@ -16,6 +16,11 @@ via headless Chrome), not the raw CSS, so it doesn't get fooled by the hundreds
 of unused palette variables that UI frameworks (Mantine, Tailwind, Bootstrap,
 MUI) ship.
 
+It can also capture **microinteractions** — hover/focus deltas, CSS transitions
+and `@keyframes`, scroll-reveal patterns, and which animation library is in use
+(GSAP, Framer Motion, Lottie, Rive, AOS, Lenis) — and document them in a
+`## Motion` section.
+
 ## Install
 
 ```bash
@@ -61,7 +66,9 @@ plugins/extract-design-md/
     ├── SKILL.md                       # main workflow
     ├── TEMPLATE.md                    # DESIGN.md structure to fill in
     ├── reference.md                   # mapping heuristics & pitfalls
-    └── scripts/probe.mjs              # extracts computed styles + screenshots
+    └── scripts/
+        ├── probe.mjs                  # extracts computed styles + screenshots
+        └── motion.mjs                 # captures microinteractions (hover/scroll/transitions)
 ```
 
 ## License
