@@ -131,13 +131,30 @@ Requirements:
   under **Known Gaps**. If you add a dark theme the site lacks, label it an
   additive, reuse-oriented layer.
 
-### Step 8 — Verify (optional but recommended)
+### Step 8 — Verify + bundle one showcase link (optional but recommended)
 
-If asked to also build a showcase/sample: generate a small page using only the
-tokens, render it with the same probe approach (point Chrome at the local
-file), and compare side-by-side to the site screenshots. Iterate until the
-palette, hierarchy, and shapes match. Remove temporary probe/screenshot
-artifacts when done.
+If asked to also build a showcase/sample, deliver it as **a single page (one
+link)** that bundles everything — the rendered sample site, the design language,
+and the motion notes — like getdesign.md does. Build one `index.html` (or
+`<brand>.html`) with a tab/segmented control:
+
+- **Preview** — the rendered sample site (embed the sample file via
+  `<iframe src="...-sample.html">`, or inline it).
+- **DESIGN.md** — the design language. Inline the `DESIGN.md` text into a styled,
+  scrollable panel (don't `fetch()` it — that fails on `file://`) with a
+  "Download DESIGN.md" button (a Blob/data-URI from the same inlined text).
+- **Motion** — the captured easing/transition tokens, hover specs, and looping
+  animations, with an honest note on what is approximate.
+
+Style the showcase chrome in the extracted brand's own tokens (dogfood it).
+Verify by rendering all tabs and comparing the Preview to the site screenshots;
+iterate until palette, hierarchy, shapes, and motion match. Then remove
+temporary probe/screenshot artifacts.
+
+**Fidelity check (avoid inventing motion):** read `motion.json.inventory` first.
+If `scroll` reveals are empty but `runningAnimations` is high, the site uses
+continuous loops + hover — reproduce those, and do NOT add fade-up-on-scroll
+reveals it doesn't have.
 
 ## Output location
 

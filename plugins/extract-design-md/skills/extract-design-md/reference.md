@@ -96,6 +96,14 @@ Capture the **mechanism** of microinteractions, not a recording. A screen
 recording shows the look but not the trigger/duration/easing, and pixel→CSS
 reconstruction is lossy and janky. `motion.json` gives:
 
+- `inventory`: the KIND of motion the page relies on — `canvas`/`video` counts,
+  `runningAnimations` (continuously-running CSS animations) + their
+  `topRunningAnimations` names, and `willChange` usage (scroll-linked
+  parallax/sticky transforms). **Read this first.** If `scroll` (reveals) is
+  empty but `runningAnimations` is high, the site uses *continuous loops + hover*
+  — do NOT invent fade-up-on-scroll reveals it doesn't have. High `canvas`/
+  `video` means bespoke/scrubbed motion you can only approximate or note.
+
 - `libraries`: which animation engine the site uses. **If a library is detected,
   recommend reproducing with it** (Framer Motion, GSAP/ScrollTrigger, Lottie,
   Rive, AOS, Lenis smooth-scroll) rather than hand-rolling.

@@ -69,7 +69,7 @@ function cdp(ws) {
   await S("Page.navigate", { url });
   await sleep(6000);
 
-  const out = { meta: { url }, libraries: {}, keyframes: [], transitions: [], hover: [], scroll: [] };
+  const out = { meta: { url }, libraries: {}, inventory: {}, keyframes: [], transitions: [], hover: [], scroll: [] };
 
   // 1) Animation libraries
   out.libraries = await evalJS(`(() => ({
@@ -82,6 +82,28 @@ function cdp(ws) {
     locomotive: !!document.querySelector('[data-scroll],[data-scroll-container]'),
     motionOne: !!window.Motion,
   }))()`);
+
+  // 1b) Motion inventory — what KIND of motion the page relies on. Crucial so you
+  //     don't invent reveals a site doesn't have (e.g. continuous loops vs. scroll fades).
+  out.inventory = await evalJS(`(() => {
+    let running = 0; const names = {}; const wc = {};
+    document.querySelectorAll('*').forEach((el) => {
+      const cs = getComputedStyle(el);
+      if (cs.animationName && cs.animationName !== 'none') {
+        running++;
+        cs.animationName.split(',').forEach((n) => { n = n.trim(); names[n] = (names[n] || 0) + 1; });
+      }
+      if (cs.willChange && cs.willChange !== 'auto') wc[cs.willChange] = (wc[cs.willChange] || 0) + 1;
+    });
+    return {
+      canvas: document.querySelectorAll('canvas').length,
+      video: document.querySelectorAll('video').length,
+      lottiePlayers: document.querySelectorAll('lottie-player,[class*=lottie]').length,
+      runningAnimations: running,
+      topRunningAnimations: Object.entries(names).sort((a,b)=>b[1]-a[1]).slice(0, 12),
+      willChange: Object.entries(wc).sort((a,b)=>b[1]-a[1]).slice(0, 8),
+    };
+  })()`);
 
   // 2) @keyframes + transition/animation tallies from stylesheets + computed
   const km = await evalJS(`(() => {
@@ -171,7 +193,12 @@ function cdp(ws) {
   out.scroll = out.scroll.slice(0, 12);
 
   fs.writeFileSync(path.join(outDir, "motion.json"), JSON.stringify(out, null, 2));
+  const iv = out.inventory;
   console.log("Wrote " + path.join(outDir, "motion.json") +
-    ` (libs: ${Object.entries(out.libraries).filter(([,v])=>v).map(([k])=>k).join(",")||"none"}; hover:${out.hover.length}; scroll:${out.scroll.length}; keyframes:${out.keyframes.length})`);
+    ` (libs: ${Object.entries(out.libraries).filter(([,v])=>v).map(([k])=>k).join(",")||"none"}` +
+    `; canvas:${iv.canvas}; video:${iv.video}; running-anim:${iv.runningAnimations}` +
+    `; hover:${out.hover.length}; scroll-reveals:${out.scroll.length}; keyframes:${out.keyframes.length})`);
+  if (out.scroll.length === 0 && iv.runningAnimations > 0)
+    console.log("NOTE: no opacity/transform scroll-reveals detected — motion is likely continuous loops and/or hover. Do NOT invent fade-up reveals.");
   chrome.kill(); ws.close(); process.exit(0);
 })().catch((e) => { console.error("ERROR:", e.message); try { chrome.kill(); } catch {} process.exit(1); });
