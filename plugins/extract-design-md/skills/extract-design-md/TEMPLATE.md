@@ -87,6 +87,24 @@ typography:
   # caption, badge, button-md, button-sm, nav-link, mono, and any display/
   # handwriting face actually used.
 
+motion:                         # OPTIONAL — fill from motion.json (motion lives HERE, in the doc)
+  easing:
+    standard: "<cubic-bezier(...) or ease>"
+  duration:
+    fast: "<ms>"
+    base: "<ms>"
+    slow: "<ms>"
+  hover:
+    button: "<what changes on hover>"
+    link: "<...>"
+  looping:
+    <name>: "<continuously-running animation, from motion.json keyframes>"
+  inventory:
+    canvas: "<count>"
+    video: "<count>"
+    running-animations: "<count + note>"
+    scroll-reveals: "<none | from->to; do not invent>"
+
 rounded:
   none: 0px
   sm: <px>

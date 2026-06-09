@@ -131,25 +131,34 @@ Requirements:
   under **Known Gaps**. If you add a dark theme the site lacks, label it an
   additive, reuse-oriented layer.
 
-### Step 8 — Verify + bundle one showcase link (optional but recommended)
+### Step 8 — ALWAYS render one showcase page
 
-If asked to also build a showcase/sample, deliver it as **a single page (one
-link)** that bundles everything — the rendered sample site, the design language,
-and the motion notes — like getdesign.md does. Build one `index.html` (or
-`<brand>.html`) with a tab/segmented control:
+Whenever this skill produces a deliverable, **always render a single
+self-contained showcase page** with the bundled generator — never hand-build a
+bespoke layout, and never put motion in a separate "website" tab.
 
-- **Preview** — the rendered sample site (embed the sample file via
-  `<iframe src="...-sample.html">`, or inline it).
-- **DESIGN.md** — the design language. Inline the `DESIGN.md` text into a styled,
-  scrollable panel (don't `fetch()` it — that fails on `file://`) with a
-  "Download DESIGN.md" button (a Blob/data-URI from the same inlined text).
-- **Motion** — the captured easing/transition tokens, hover specs, and looping
-  animations, with an honest note on what is approximate.
+1. Put **motion inside `DESIGN.md`** — a `motion:` frontmatter block (easing,
+   duration, hover, looping, inventory) AND a `## Motion` prose section. Motion
+   is part of the design language, not the sample site.
+2. Build the sample site as `<brand>-sample.html` (the Step 8 verification site).
+3. Run the generator:
 
-Style the showcase chrome in the extracted brand's own tokens (dogfood it).
-Verify by rendering all tabs and comparing the Preview to the site screenshots;
-iterate until palette, hierarchy, shapes, and motion match. Then remove
-temporary probe/screenshot artifacts.
+```bash
+node scripts/showcase.mjs <brand>-DESIGN.md <brand>-sample.html <brand>.html
+```
+
+This emits one self-contained page (`<brand>.html`) modeled on
+design-extractor.com/gallery — a **Design / Preview / Source** segmented control:
+
+- **Design** — the rendered design system: header + token counts, color
+  swatches (primitive scales + semantic roles, refs resolved to hex), type
+  specimens ("The quick brown fox jumps"), spacing bars, radii chips,
+  components, and a **Motion** section — all rendered from `DESIGN.md`.
+- **Preview** — the sample site, inlined via `<iframe srcdoc>` (self-contained).
+- **Source** — the raw `DESIGN.md` + a "Copy .md" button.
+
+Open `<brand>.html` to verify all three tabs; compare Preview to the site
+screenshots and iterate. Then remove temporary probe/screenshot artifacts.
 
 **Fidelity check (avoid inventing motion):** read `motion.json.inventory` first.
 If `scroll` reveals are empty but `runningAnimations` is high, the site uses
@@ -165,6 +174,8 @@ be dropped into any repo so an agent can "use DESIGN.md for UI work."
 
 - [scripts/probe.mjs](scripts/probe.mjs) — run to extract styles + screenshots.
 - [scripts/motion.mjs](scripts/motion.mjs) — run to capture microinteractions.
+- [scripts/showcase.mjs](scripts/showcase.mjs) — run to render the final
+  Design/Preview/Source showcase page from a DESIGN.md (+ sample). ALWAYS use it.
 - [TEMPLATE.md](TEMPLATE.md) — the DESIGN.md structure to fill in.
 - [reference.md](reference.md) — token mapping heuristics, framework pitfalls,
   dark-theme mapping, motion capture, verification tips.

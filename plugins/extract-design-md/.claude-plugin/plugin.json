@@ -1,6 +1,6 @@
 {
   "name": "extract-design-md",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Extract a website's design system into a portable DESIGN.md file (two-tier design tokens + components + prose) for reuse across projects. Probes real computed styles, screenshots, and microinteractions (hover/scroll/transitions + animation libraries) from the live site via headless Chrome. Requires Node 18+ and a Chromium-based browser; the probe scripts browse the URL you pass.",
   "skills": "./skills/"
 }

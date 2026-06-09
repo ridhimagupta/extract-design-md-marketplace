@@ -11,7 +11,7 @@
       "name": "extract-design-md",
       "source": "./plugins/extract-design-md",
       "description": "Extract a website's design system into a portable DESIGN.md (two-tier tokens + components + prose + motion) by probing real computed styles, screenshots, and microinteractions.",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "category": "design"
     }
   ]
