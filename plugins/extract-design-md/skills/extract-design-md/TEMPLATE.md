@@ -1,191 +1,151 @@
 <!--
-  DESIGN.md TEMPLATE — copy this to the target repo as DESIGN.md and replace
-  every <PLACEHOLDER>. Keep the two-tier color structure. Delete this comment.
-  Token reference syntax used in prose + components: {colors.semantic.text.primary}
+  DESIGN.md TEMPLATE — copy to the target repo as DESIGN.md and replace every
+  <PLACEHOLDER>. A scraper records what's there; this file records the
+  DECISIONS — so an agent can make NEW screens that feel like they belong.
+  Every section pairs VALUES with RULES for applying them.
+
+  Keep the small YAML frontmatter (it powers the showcase renderer + tooling),
+  then write the rule-driven body. Token reference syntax: {colors.semantic.text.primary}
+  Delete this comment.
 -->
 ---
 version: alpha
-name: <Brand>-design-analysis
-description: <2-5 sentence summary: the canvas, the primary action color/shape, the secondary + conversion CTAs, where accents/decorative colors appear, the type system, and the shape language. Name the single most recognizable visual move.>
+name: "<Brand> design.md"
+intent:
+  feels-like: "<2-4 sentences: the personality, e.g. 'A calm, confident tool. Generous whitespace, one idea per screen.'>"
+  optimizes-for: "<e.g. 'Scannability for daily-use power users'>"
+  reference-points: "<2-3 products it sits near + one it deliberately is NOT>"
 
+# --- Machine-readable tokens (semantic roles only; this is what components consume) ---
 colors:
-  primitive:
-    neutral:
-      0: "#ffffff"
-      50: "#<...>"
-      100: "#<...>"
-      200: "#<...>"
-      300: "#<...>"
-      400: "#<...>"
-      500: "#<...>"
-      600: "#<...>"
-      700: "#<...>"
-      800: "#<...>"
-      900: "#000000"
-    # Add one block per brand hue actually used (green/blue/brand/etc.).
-    <hue>:
-      50: "#<...>"   # soft / tint
-      500: "#<...>"  # base
-      600: "#<...>"  # hover / active
-    # Optional dark-surface primitives (only if you add a dark theme):
-    dark:
-      ink: "#<...>"
-      surface-1: "#<...>"
-      surface-2: "#<...>"
-      border: "#<...>"
   semantic:
-    background:
-      primary: "{colors.primitive.neutral.0}"
-      secondary: "{colors.primitive.<...>}"
-      tertiary: "{colors.primitive.neutral.100}"
-      inverse: "{colors.primitive.neutral.900}"
-    text:
-      primary: "{colors.primitive.neutral.800}"
-      secondary: "{colors.primitive.neutral.700}"
-      muted: "{colors.primitive.neutral.500}"
-      inverse: "{colors.primitive.neutral.0}"
-      link: "{colors.primitive.<...>}"
-    border:
-      subtle: "{colors.primitive.neutral.200}"
-      default: "{colors.primitive.neutral.300}"
-      strong: "{colors.primitive.neutral.400}"
-    action-primary:
-      bg: "{colors.primitive.<...>}"
-      text: "{colors.primitive.<...>}"
-      hover: "{colors.primitive.<...>}"
-    action-secondary:
-      bg: "{colors.primitive.<...>}"
-      text: "{colors.primitive.<...>}"
-      hover: "{colors.primitive.<...>}"
-    action-cta:                 # only if the site has a distinct conversion CTA
-      bg: "{colors.primitive.<...>}"
-      hover: "{colors.primitive.<...>}"
-      text: "{colors.primitive.<...>}"
-    accent:
-      <name>: "{colors.primitive.<...>}"
-    feedback:
-      success: "{colors.primitive.<...>}"
-    product:                    # colors that live inside app mockups, not chrome
-      <name>: "{colors.primitive.<...>}"
-  semantic-dark:                # OPTIONAL — override only semantic roles
-    background:
-      primary: "{colors.primitive.dark.ink}"
-    text:
-      primary: "{colors.primitive.neutral.0}"
-    action-primary:
-      bg: "{colors.primitive.neutral.0}"
-      text: "{colors.primitive.neutral.900}"
+    surface: "#______"            # page background
+    surface-raised: "#______"     # cards, modals
+    border: "#______"             # hairlines, dividers
+    text-primary: "#______"
+    text-muted: "#______"         # secondary text, never for actions
+    accent: "#______"             # primary actions + active states ONLY
+    destructive: "#______"        # irreversible actions only
+    # add success/warning/info if the product uses them
 
 typography:
-  display-xl:
-    fontFamily: "<primary stack>"
-    fontSize: <px>
-    fontWeight: <n>
-    lineHeight: <n>
-    letterSpacing: <px>
-  # display-lg, display-md, heading-*, title, body-lg, body-md, body-sm,
-  # caption, badge, button-md, button-sm, nav-link, mono, and any display/
-  # handwriting face actually used.
+  display: { fontFamily: "<face>", fontSize: <px>, fontWeight: <n>, lineHeight: <n>, letterSpacing: <em> }
+  h1:      { fontFamily: "<face>", fontSize: <px>, fontWeight: <n>, lineHeight: <n> }
+  h2:      { fontFamily: "<face>", fontSize: <px>, fontWeight: <n>, lineHeight: <n> }
+  body:    { fontFamily: "<face>", fontSize: <px>, fontWeight: 400, lineHeight: <n> }
+  small:   { fontFamily: "<face>", fontSize: <px>, fontWeight: 400, lineHeight: <n> }
+  micro:   { fontFamily: "<face>", fontSize: <px>, fontWeight: <n>, lineHeight: <n> }
 
-motion:                         # OPTIONAL — fill from motion.json (motion lives HERE, in the doc)
-  easing:
-    standard: "<cubic-bezier(...) or ease>"
-  duration:
-    fast: "<ms>"
-    base: "<ms>"
-    slow: "<ms>"
-  hover:
-    button: "<what changes on hover>"
-    link: "<...>"
-  looping:
-    <name>: "<continuously-running animation, from motion.json keyframes>"
-  inventory:
-    canvas: "<count>"
-    video: "<count>"
-    running-animations: "<count + note>"
-    scroll-reveals: "<none | from->to; do not invent>"
-
-rounded:
-  none: 0px
-  sm: <px>
-  md: <px>
-  lg: <px>
-  xl: <px>
-  pill: <px>
-  full: 9999px
-
-spacing:
-  xs: <px>
-  sm: <px>
-  md: <px>
-  base: <px>
-  lg: <px>
-  xl: <px>
-  section: <px>
-
-components:
-  # Each component references SEMANTIC roles + typography/rounded/spacing tokens.
-  button-primary:
-    backgroundColor: "{colors.semantic.action-primary.bg}"
-    textColor: "{colors.semantic.action-primary.text}"
-    typography: "{typography.button-md}"
-    rounded: "{rounded.<...>}"
-    padding: <v h>
-    height: <px>
-  # Add the real components you saw: button-secondary, button-cta, card,
-  # input, nav, chip/badge, and any signature element (chat bubble, etc.).
+spacing: { base: <4px|8px>, within: <px>, related: <px>, groups: <px>, sections: <px> }
+rounded: { sm: <px>, md: <px>, lg: <px>, full: 9999px }
+motion:
+  easing: { standard: "<cubic-bezier(...)>" }
+  duration: { fast: "120ms", standard: "200ms", deliberate: "300ms" }
 ---
 
-## Overview
-<What the brand feels like and why. State the action hierarchy explicitly
-(primary = X, secondary = Y, conversion CTA = Z), the canvas, the type system,
-and the shape language.>
+# design.md — <Product Name>
 
-**Key Characteristics:**
-- <single most recognizable move>
-- <action hierarchy>
-- <accent / decorative usage>
-- <type at friendly/heavy weights, families>
-- <shape language>
-- <light/dark note>
+> **How to use this spec:** Every section pairs values with rules for applying them. If you (human or agent) find yourself making a visual decision this file doesn't cover, the Design Intent section is the tiebreaker. When in doubt, do less.
 
-## Colors
-### Tier 1 — Primitives
-<List each scale with hexes and one line on what it carries.>
-### Tier 2 — Semantic roles
-<background / text / border / action-* / accent / feedback / product, each with
-its resolved value and where it is used.>
+## 1. Design Intent
+<!-- The part scrapers miss. Every rule below must trace back to this. -->
+**Feels like:** <...>
+**Optimizes for:** <...>
+**Reference points:** <2-3 near + 1 it is NOT>
 
-## Typography
-### Font Family
-<primary + any secondary/display/handwriting face; fallbacks.>
-### Hierarchy
-<table: token | size | weight | line | tracking | use>
-### Principles
-<how loud/quiet type is; what carries hierarchy.>
+## 2. Type System
+**Faces**
+- Display: `<Family>` — used only for <hero / page titles>, never below <size>
+- Body: `<Family>`
+- Utility (data, captions, code): `<Family or mono>`
 
-## Layout
-<spacing base unit + tokens; container max width; grid; whitespace philosophy.>
+| Role | Size / Line height | Weight | Usage rule |
+|---|---|---|---|
+| Display | <48/1.1> | <650> | One per view, max |
+| H1 | <32/1.2> | <600> | Page title only |
+| H2 | <24/1.3> | <600> | Section breaks |
+| Body | <16/1.6> | <400> | Default for everything |
+| Small | <14/1.5> | <400> | Metadata, captions |
+| Micro | <12/1.4> | <500> | Labels, eyebrows — uppercase + tracked |
 
-## Elevation
-<shadow tiers (or flat); how depth is achieved.>
+**Rules**
+- Headings never exceed weight <600>. Emphasis comes from size and space, not boldness.
+- Body text never below <15px>. Letter-spacing: <tight on display, default on body>.
+- Max line length: <~65ch>. Text never spans full container width.
 
-## Components
-<each component: surface, text, radius, padding, states, and where it appears.>
+## 3. Spacing Logic
+**Base unit:** <4px / 8px> — every value is a multiple. No magic numbers.
+- Within a component (label → input): <8px>
+- Between related elements: <16px>
+- Between distinct groups: <24-32px>
+- Between page sections: <64-96px>
+- Container padding: <24px mobile / 48px desktop>
 
-## Motion
-<OPTIONAL — fill from motion.json. Document: animation libraries in use; the
-transition tokens (common durations + easings, e.g. 150ms ease, 400ms
-cubic-bezier(...)); hover/focus specs per component (what changes + the
-transition); scroll-reveal patterns (fade/slide-in from opacity/transform
-from→to, trigger = on enter viewport); and any signature keyframes. Recommend an
-implementation: CSS transitions + IntersectionObserver for reveals, or the
-detected library (Framer Motion / GSAP) for complex orchestration. Note what is
-approximate (springs, WebGL, scroll-scrubbing).>
+**Density philosophy:** <e.g. "Air over compression — when crowded, remove an element before shrinking gaps.">
 
-## Responsive Behavior
-<breakpoints table + key changes; touch targets.>
+## 4. Color
+| Token | Value | Job |
+|---|---|---|
+| `surface` | #___ | Page background |
+| `surface-raised` | #___ | Cards, modals |
+| `border` | #___ | Hairlines, dividers |
+| `text-primary` | #___ | Default text |
+| `text-muted` | #___ | Secondary text, never for actions |
+| `accent` | #___ | Primary actions + active states only |
+| `destructive` | #___ | Irreversible actions only |
 
-## Known Gaps
-<everything NOT observed: hover states, dark mode, deep in-app UI, error states,
-bespoke assets. If you added a dark theme the site lacks, say so here.>
+**Rules**
+- Accent appears <once> per view. If two things compete for it, neither gets it.
+- Never pure black (#000) or pure white (#FFF) — use <near values>.
+- Backgrounds shift by <elevation/tint>, not by hue.
+- Dark mode: <exists / doesn't>. If it does: <inversion logic, not a second palette>.
+
+## 5. Components
+<!-- Anatomy + ALL states. States are where AI output falls apart. -->
+**Shared anatomy**
+- Radius: <8px standard, 12px cards, full for pills — never mixed within a component>
+- Borders: <1px `border` / borderless>
+- Shadow philosophy: <e.g. "Nearly invisible. Depth comes from borders and background shifts.">
+
+**Button** — Default / Hover <bg darkens 6%> / Active <scale 0.98> / Focus <2px accent ring, 2px offset> / Disabled <40% opacity, no pointer> / Loading <spinner replaces label, width locked>
+**Input** — Default / Focus / Error <border destructive + message below, never placeholder-only> / Disabled
+**Card** — padding, hover (if interactive), and what NEVER goes in one
+**Empty states** — every list/table has one: <icon? one-line explanation + primary action>
+
+## 6. Motion
+**Philosophy:** <e.g. "Motion explains, never decorates. If you'd notice the animation before the content, it's too much.">
+- Fast (hovers, toggles): <120ms ease-out>
+- Standard (reveals, dropdowns): <200ms ease-out>
+- Deliberate (modals, transitions): <300ms cubic-bezier(0.32,0.72,0,1)>
+- Never exceed <400ms>. Never bounce/spring unless <playful — see Intent>.
+
+**Choreography**
+- Elements enter from where they belong (dropdowns scale from trigger, toasts slide from edge).
+- Stagger lists at <30ms>/item, max <6>. Exits faster than entrances (~70%).
+- One orchestrated moment per view, max. Always respect `prefers-reduced-motion`.
+
+<!-- If captured from a live site (motion.json), record the real inventory:
+     animation libraries, looping animations, and whether it uses scroll-reveals.
+     Do NOT invent reveals a site doesn't have. -->
+
+## 7. Illustration & Imagery
+**Style:** <e.g. "Flat 2px-stroke line illustrations in `text-muted`, single accent fill. No 3D, no stock photography.">
+**Where it appears:** <empty states, onboarding> — and never: <data views, settings>
+**Iconography:** set <Lucide / custom>, stroke <1.5px>, <20px> default; <paired with labels / standalone in toolbars only>; never mix filled + stroked in one view.
+**Photography (if used):** <treatment — duotone? crop ratio? real people vs abstract?>
+
+## 8. Voice in the Interface
+- Buttons say what happens: "Save changes," not "Submit".
+- Sentence case everywhere except <micro labels>.
+- Errors state what went wrong + how to fix it. No apologies, no vagueness.
+- Empty states invite action, they don't just announce absence.
+
+## 9. Never Do
+<!-- Prohibitions constrain an agent more effectively than examples. Be specific. -->
+- No gradients <except: ___>
+- No center-aligned body text
+- No more than <2> font weights per view
+- No drop shadows above <token>
+- No animation on page load / scroll except <the one signature moment>
+- Never introduce a color outside the semantic palette
+- <3-5 prohibitions specific to this product>

@@ -15,7 +15,33 @@ coding agent can use to build on-brand UI. The output is token-driven (a
 two-tier color system, typography, spacing, radius, elevation, and components)
 plus explanatory prose.
 
-## Golden rule: trust the rendered page, not the raw CSS
+## Golden rule #1: record decisions, not just values
+
+A scraper records *what's there*; this skill records *the decisions* — so an
+agent can make NEW screens that feel like they belong. A CSS-variable dump is
+not enough. Every section of the output must pair **values with rules for
+applying them**, and trace back to a stated **Design Intent**. Specifically,
+capture and write:
+
+- **Design intent** — 2-4 sentences on what it's trying to feel like + what it
+  optimizes for + reference points. This is the tiebreaker for anything
+  unspecified. Infer it from the visual tone, density, and copy.
+- **Type as hierarchy with rules** — roles (display/h1/h2/body/small/micro) with
+  usage rules ("headings never exceed weight 600", "body never below 15px").
+- **Spacing logic** — the base unit + relational rules (within / related /
+  groups / sections), not a dump of every margin.
+- **Color with semantic roles + constraints** — surface / surface-raised /
+  border / text-primary / text-muted / accent / destructive, plus rules
+  ("accent once per view, primary action only").
+- **Component anatomy + ALL states** — hover, focus, disabled, empty, error.
+  This is the single biggest gap in AI-generated UI.
+- **Motion philosophy + tokens** (see Step 6).
+- **Voice, illustration/iconography**, and a **"Never Do"** list — prohibitions
+  constrain an agent more effectively than positive examples.
+
+Fill the [TEMPLATE.md](TEMPLATE.md) sections 1-9 with these. When in doubt, do less.
+
+## Golden rule #2: trust the rendered page, not the raw CSS
 
 Modern sites ship UI frameworks (Mantine, Tailwind, Bootstrap, MUI) that inject
 **hundreds of unused palette variables**. Reading raw `.css` files leads to
@@ -119,17 +145,21 @@ for what is reliably capturable vs. approximate (springs, WebGL, scrubbing).
 
 ### Step 7 — Write DESIGN.md
 
-Copy [TEMPLATE.md](TEMPLATE.md) and fill every section with extracted values.
-Requirements:
+Copy [TEMPLATE.md](TEMPLATE.md) and fill it out. It is a **decisions + rules**
+spec, not a value dump. Requirements:
 
-- YAML frontmatter: `colors` (nested `primitive:` + `semantic:`, optional
-  `semantic-dark:`), `typography`, `rounded`, `spacing`, `components`. Components
-  reference semantic roles (e.g. `{colors.semantic.action-primary.bg}`).
-- Prose sections: Overview (+ Key Characteristics), Colors, Typography, Layout,
-  Elevation, Components, Responsive Behavior, Known Gaps.
-- Honesty: list anything not observed (hover states, dark mode, deep app UI)
-  under **Known Gaps**. If you add a dark theme the site lacks, label it an
-  additive, reuse-oriented layer.
+- Compact YAML frontmatter for tooling: `intent`, `colors.semantic` (surface,
+  surface-raised, border, text-primary, text-muted, accent, destructive, …),
+  `typography` (display/h1/h2/body/small/micro), `spacing` (base + relational),
+  `rounded`, `motion`.
+- Body sections 1-9: **Design Intent**, **Type System** (roles + rules),
+  **Spacing Logic** (relational, not a table dump), **Color** (semantic roles +
+  constraints), **Components** (anatomy + ALL states: hover/focus/disabled/
+  empty/error), **Motion** (philosophy + tokens + captured inventory),
+  **Illustration & Imagery**, **Voice in the Interface**, **Never Do**.
+- Pair every value with a rule. Infer **Design Intent** from tone/density/copy.
+- Honesty: anything not observed (states you couldn't trigger, dark mode, deep
+  app UI) — say so. If you add a theme the site lacks, label it additive.
 
 ### Step 8 — ALWAYS render one showcase page
 

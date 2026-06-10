@@ -22,12 +22,32 @@ if (!mdPath) { console.error("Usage: node showcase.mjs <DESIGN.md> [sample.html]
 const raw = fs.readFileSync(mdPath, "utf8");
 const fmMatch = raw.match(/^---\n([\s\S]*?)\n---/);
 const fm = fmMatch ? fmMatch[1] : "";
+const body = fmMatch ? raw.slice(fmMatch[0].length) : raw;
 
 /* ---- tolerant indentation YAML parser (nested maps of scalar strings) ---- */
 function stripQuotes(s) {
   s = s.trim();
   if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) return s.slice(1, -1);
   return s;
+}
+function splitTop(s, sep) { // split respecting quotes
+  const out = []; let cur = "", q = null;
+  for (const ch of s) {
+    if (q) { cur += ch; if (ch === q) q = null; }
+    else if (ch === '"' || ch === "'") { q = ch; cur += ch; }
+    else if (ch === sep) { out.push(cur); cur = ""; }
+    else cur += ch;
+  }
+  if (cur.trim()) out.push(cur);
+  return out;
+}
+function parseInline(s) { // { k: v, k: "v, v" } -> object
+  const obj = {}; const inner = s.slice(1, -1);
+  for (const pair of splitTop(inner, ",")) {
+    const ci = pair.indexOf(":"); if (ci === -1) continue;
+    obj[stripQuotes(pair.slice(0, ci))] = stripQuotes(pair.slice(ci + 1).trim());
+  }
+  return obj;
 }
 function parseYaml(text) {
   const root = {};
@@ -40,16 +60,19 @@ function parseYaml(text) {
     if (idx === -1) continue;
     const key = stripQuotes(rest.slice(0, idx));
     let val = rest.slice(idx + 1).trim();
-    // Take the quoted span if quoted (preserves '#' in hex); else strip a trailing "# comment".
+    let inlineObj = null;
     if (val[0] === '"' || val[0] === "'") {
       const q = val[0]; const end = val.indexOf(q, 1);
       val = end === -1 ? val.slice(1) : val.slice(1, end);
+    } else if (val[0] === "{" && val[val.length - 1] === "}") {
+      inlineObj = parseInline(val);
     } else {
-      val = val.replace(/\s+#.*$/, "").trim();
+      val = val.replace(/\s+#.*$/, "").trim(); // strip trailing comment
     }
     while (stack.length && stack[stack.length - 1].indent >= indent) stack.pop();
     const parent = stack[stack.length - 1].obj;
-    if (val === "") { const child = {}; parent[key] = child; stack.push({ indent, obj: child }); }
+    if (inlineObj) parent[key] = inlineObj;
+    else if (val === "") { const child = {}; parent[key] = child; stack.push({ indent, obj: child }); }
     else parent[key] = val;
   }
   return root;
@@ -96,11 +119,21 @@ function colorGroup(title, obj) {
   }
   return `<h4 class="grp">${esc(title)}</h4><div class="sw-grid">${chips}</div>`;
 }
+function renderMap(title, obj) {
+  if (!obj || typeof obj !== "object") return "";
+  const flat = Object.entries(obj).filter(([, v]) => typeof v === "string");
+  const groups = Object.entries(obj).filter(([, v]) => typeof v === "object");
+  let h = title ? `<h3>${esc(title)}</h3>` : "";
+  if (flat.length) h += `<div class="sw-grid">` + flat.map(([k, v]) => swatch(k, v)).join("") + `</div>`;
+  h += groups.map(([k, v]) => colorGroup(k, v)).join("");
+  return h;
+}
 function renderColors() {
   const c = data.colors || {};
   let html = "";
   if (c.primitive) html += `<h3>Primitive scales</h3>` + Object.entries(c.primitive).map(([hue, steps]) => colorGroup(hue, steps)).join("");
-  if (c.semantic) html += `<h3>Semantic roles</h3>` + Object.entries(c.semantic).map(([grp, roles]) => colorGroup(grp, roles)).join("");
+  if (c.semantic) html += renderMap("Semantic roles", c.semantic);
+  if (!c.primitive && !c.semantic) html += renderMap("", c);
   return html;
 }
 
@@ -154,6 +187,54 @@ function renderMotion() {
   return `<div class="mo-grid">` + ["easing", "duration", "hover", "looping", "inventory"].map((k) => block(k, m[k])).join("") + `</div>`;
 }
 
+/* ---- minimal markdown -> HTML for the rule-driven body (the "decisions") ---- */
+function inlineMd(s) {
+  return esc(s)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+}
+function renderMarkdown(src) {
+  const lines = src.replace(/<!--[\s\S]*?-->/g, "").split("\n");
+  let html = "", i = 0, inUl = false, inOl = false;
+  const closeLists = () => { if (inUl) { html += "</ul>"; inUl = false; } if (inOl) { html += "</ol>"; inOl = false; } };
+  while (i < lines.length) {
+    const line = lines[i];
+    const t = line.trim();
+    // table
+    if (t.startsWith("|") && lines[i + 1] && /^\s*\|[\s:|-]+\|\s*$/.test(lines[i + 1])) {
+      closeLists();
+      const cells = (r) => r.trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
+      const head = cells(t);
+      html += '<table class="md-tbl"><thead><tr>' + head.map((h) => `<th>${inlineMd(h)}</th>`).join("") + "</tr></thead><tbody>";
+      i += 2;
+      while (i < lines.length && lines[i].trim().startsWith("|")) {
+        html += "<tr>" + cells(lines[i]).map((c) => `<td>${inlineMd(c)}</td>`).join("") + "</tr>";
+        i++;
+      }
+      html += "</tbody></table>";
+      continue;
+    }
+    if (!t) { closeLists(); i++; continue; }
+    if (t === "---") { closeLists(); html += "<hr/>"; i++; continue; }
+    let m;
+    if ((m = t.match(/^(#{1,4})\s+(.*)$/))) {
+      closeLists();
+      const lvl = m[1].length;
+      if (lvl === 1) { html += `<h2 class="md-h1">${inlineMd(m[2])}</h2>`; }
+      else html += `<h${lvl} class="md-h">${inlineMd(m[2])}</h${lvl}>`;
+      i++; continue;
+    }
+    if (t.startsWith(">")) { closeLists(); html += `<blockquote>${inlineMd(t.replace(/^>\s?/, ""))}</blockquote>`; i++; continue; }
+    if ((m = t.match(/^[-*]\s+(.*)$/))) { if (!inUl) { closeLists(); html += "<ul>"; inUl = true; } html += `<li>${inlineMd(m[1])}</li>`; i++; continue; }
+    if ((m = t.match(/^\d+\.\s+(.*)$/))) { if (!inOl) { closeLists(); html += "<ol>"; inOl = true; } html += `<li>${inlineMd(m[1])}</li>`; i++; continue; }
+    closeLists();
+    html += `<p>${inlineMd(t)}</p>`;
+    i++;
+  }
+  closeLists();
+  return html;
+}
+
 const counts = {
   colors: countLeaves(data.colors && data.colors.primitive) + countLeaves(data.colors && data.colors.semantic),
   type: Object.keys(data.typography || {}).length,
@@ -163,8 +244,9 @@ const counts = {
 
 const sampleHtml = samplePath && fs.existsSync(samplePath) ? fs.readFileSync(samplePath, "utf8") : "";
 const srcdoc = sampleHtml ? sampleHtml.replace(/&/g, "&amp;").replace(/"/g, "&quot;") : "";
-const name = (data.name || "Design system").replace(/-/g, " ");
-const description = data.description || "";
+const name = (data.name || "Design system").replace(/\bdesign\.md\b/i, "").replace(/-/g, " ").trim() || "Design system";
+const intent = data.intent || {};
+const description = intent["feels-like"] || data.description || "";
 
 const html = `<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -212,6 +294,20 @@ const html = `<!DOCTYPE html>
   .mo ul{margin:0;padding-left:0;list-style:none;} .mo li{font-size:13px;color:var(--muted);margin:5px 0;} .mo-k{font-weight:600;color:var(--ink);}
   .mo code{font-size:11.5px;color:var(--muted);}
   .muted{color:var(--muted);}
+  .intent{font-size:14px;color:var(--ink);margin:2px 0;} .intent b{color:var(--ink);}
+  /* Rendered markdown (the rules) */
+  .md{font-size:14px;line-height:1.7;color:#2b2f36;max-width:80ch;}
+  .md .md-h1{font-size:22px;margin:0 0 8px;color:var(--ink);}
+  .md h2.md-h{font-size:17px;margin:28px 0 10px;color:var(--ink);}
+  .md h3.md-h{font-size:14px;margin:18px 0 8px;color:var(--ink);}
+  .md h4.md-h{font-size:13px;margin:14px 0 6px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+  .md p{margin:8px 0;} .md ul,.md ol{margin:8px 0;padding-left:20px;} .md li{margin:4px 0;}
+  .md blockquote{margin:14px 0;padding:12px 16px;background:var(--soft);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;color:var(--ink);}
+  .md code{background:var(--soft);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.88em;}
+  .md hr{border:0;border-top:1px solid var(--line);margin:24px 0;}
+  .md-tbl{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px;}
+  .md-tbl th{text-align:left;padding:8px 10px;border-bottom:2px solid var(--line);color:var(--muted);font-weight:600;}
+  .md-tbl td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
   /* Preview view */
   .frame{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:24px 0;box-shadow:0 8px 40px rgba(0,0,0,.08);}
   .frame-bar{display:flex;gap:6px;align-items:center;padding:10px 14px;background:var(--soft);border-bottom:1px solid var(--line);}
@@ -236,6 +332,8 @@ const html = `<!DOCTYPE html>
     <div class="hero">
       <h1>${esc(name)}</h1>
       <p>${esc(description)}</p>
+      ${intent["optimizes-for"] ? `<p class="intent"><b>Optimizes for:</b> ${esc(intent["optimizes-for"])}</p>` : ""}
+      ${intent["reference-points"] ? `<p class="intent"><b>Reference points:</b> ${esc(intent["reference-points"])}</p>` : ""}
       <div class="counts">
         <div><b>${counts.colors}</b><span>Colors</span></div>
         <div><b>${counts.type}</b><span>Type styles</span></div>
@@ -248,7 +346,8 @@ const html = `<!DOCTYPE html>
     <section class="sec"><h2>Spacing</h2>${renderSpacing()}</section>
     <section class="sec"><h2>Radii</h2>${renderRadii()}</section>
     <section class="sec"><h2>Components</h2>${renderComponents()}</section>
-    ${data.motion ? `<section class="sec"><h2>Motion</h2>${renderMotion()}</section>` : ""}
+    ${data.motion ? `<section class="sec"><h2>Motion tokens</h2>${renderMotion()}</section>` : ""}
+    ${body.trim() ? `<section class="sec"><h2>Guidelines &amp; rules</h2><div class="md">${renderMarkdown(body)}</div></section>` : ""}
   </section>
 
   <section id="view-preview" class="view">
