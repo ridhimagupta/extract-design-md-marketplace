@@ -130,6 +130,13 @@ function renderMap(title, obj) {
 }
 function renderColors() {
   const c = data.colors || {};
+  // Themed structure: colors.dark / colors.light, each grouped by role category.
+  if (c.dark || c.light) {
+    let html = "";
+    if (c.dark) html += `<h3>Dark theme</h3>` + Object.entries(c.dark).map(([g, roles]) => colorGroup(g, roles)).join("");
+    if (c.light) html += `<h3 class="theme-sep">Light theme <span class="theme-note">· inferred app theme</span></h3>` + Object.entries(c.light).map(([g, roles]) => colorGroup(g, roles)).join("");
+    return html;
+  }
   let html = "";
   if (c.primitive) html += `<h3>Primitive scales</h3>` + Object.entries(c.primitive).map(([hue, steps]) => colorGroup(hue, steps)).join("");
   if (c.semantic) html += renderMap("Semantic roles", c.semantic);
@@ -235,8 +242,9 @@ function renderMarkdown(src) {
   return html;
 }
 
+const _c = data.colors || {};
 const counts = {
-  colors: countLeaves(data.colors && data.colors.primitive) + countLeaves(data.colors && data.colors.semantic),
+  colors: countLeaves(_c.dark || _c.light || _c.semantic || _c.primitive || _c),
   type: Object.keys(data.typography || {}).length,
   spacing: Object.keys(data.spacing || {}).length,
   radii: Object.keys(data.rounded || {}).length,
@@ -276,6 +284,7 @@ const html = `<!DOCTYPE html>
   section.sec{padding:36px 0;border-top:1px solid var(--line);}
   section.sec > h2{font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin:0 0 20px;}
   h3{font-size:15px;margin:24px 0 12px;} h4.grp{font-size:12px;color:var(--muted);margin:18px 0 10px;text-transform:uppercase;letter-spacing:.5px;}
+  h3.theme-sep{margin-top:36px;padding-top:24px;border-top:1px solid var(--line);} .theme-note{color:var(--muted);font-weight:400;font-size:12px;}
   .sw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;}
   .sw{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff;}
   .sw-c{height:56px;} .sw-m{padding:8px 10px;display:flex;flex-direction:column;gap:2px;}
@@ -345,7 +354,7 @@ const html = `<!DOCTYPE html>
     <section class="sec"><h2>Typography</h2>${renderType()}</section>
     <section class="sec"><h2>Spacing</h2>${renderSpacing()}</section>
     <section class="sec"><h2>Radii</h2>${renderRadii()}</section>
-    <section class="sec"><h2>Components</h2>${renderComponents()}</section>
+    ${Object.keys(data.components || {}).length ? `<section class="sec"><h2>Components</h2>${renderComponents()}</section>` : ""}
     ${data.motion ? `<section class="sec"><h2>Motion tokens</h2>${renderMotion()}</section>` : ""}
     ${body.trim() ? `<section class="sec"><h2>Guidelines &amp; rules</h2><div class="md">${renderMarkdown(body)}</div></section>` : ""}
   </section>
